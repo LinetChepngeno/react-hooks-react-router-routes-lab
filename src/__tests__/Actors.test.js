@@ -1,13 +1,40 @@
 import "@testing-library/jest-dom";
-import React from "react";
 import { render, screen } from "@testing-library/react";
-import Actors from "../components/Actors";
-import { actors } from "../data";
+import { RouterProvider, createMemoryRouter} from "react-router-dom";
+import routes from "../routes";
+
+const actors = [
+  {
+    name: "Benedict Cumberbatch",
+    movies: ["Doctor Strange", "The Imitation Game", "Black Mass"],
+  },
+  {
+    name: "Justin Timberlake",
+    movies: ["Trolls", "Friends with Benefits", "The Social Network"],
+  },
+  {
+    name: "Anna Kendrick",
+    movies: ["Pitch Perfect", "Into The Wood"],
+  },
+  {
+    name: "Tom Cruise",
+    movies: [
+      "Jack Reacher: Never Go Back",
+      "Mission Impossible 4",
+      "War of the Worlds",
+    ],
+  },
+];
+
+const router = createMemoryRouter(routes, {
+  initialEntries: [`/actors`],
+  initialIndex: 0
+})
 
 test("renders without any errors", () => {
   const errorSpy = jest.spyOn(global.console, "error");
 
-  render(<Actors />);
+  render(<RouterProvider router={router}/>);
 
   expect(errorSpy).not.toHaveBeenCalled();
 
@@ -15,28 +42,38 @@ test("renders without any errors", () => {
 });
 
 test("renders 'Actors Page' inside of the <h1 />", () => {
-  render(<Actors />);
-  const h1 = screen.queryByText(/Actors Page/g);
+  render(<RouterProvider router={router}/>);
+  const h1 = screen.queryByText(/Actors Page/);
   expect(h1).toBeInTheDocument();
   expect(h1.tagName).toBe("H1");
 });
 
-test("renders each actor's name", () => {
-  render(<Actors />);
+test("renders each actor's name", async () => {
+  render(<RouterProvider router={router}/>);
   for (const actor of actors) {
     expect(
-      screen.queryByText(actor.name, { exact: false })
+      await screen.findByText(actor.name, { exact: false })
     ).toBeInTheDocument();
   }
 });
 
-test("renders a <li /> for each movie", () => {
-  render(<Actors />);
+test("renders a <li /> for each movie", async () => {
+  render(<RouterProvider router={router}/>);
   for (const actor of actors) {
     for (const movie of actor.movies) {
-      const li = screen.queryByText(movie, { exact: false });
+      const li = await screen.findByText(movie, { exact: false });
       expect(li).toBeInTheDocument();
       expect(li.tagName).toBe("LI");
     }
   }
+});
+
+test("renders the <NavBar /> component", () => {
+  const router = createMemoryRouter(routes, {
+    initialEntries: ['/actors']
+  })
+  render(
+      <RouterProvider router={router}/>
+  );
+  expect(document.querySelector(".navbar")).toBeInTheDocument();
 });
